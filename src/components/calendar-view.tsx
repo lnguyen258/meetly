@@ -163,7 +163,7 @@ export default function CalendarView() {
         </button>
       </div>
 
-      <div className="card meetly-calendar overflow-hidden p-2 md:p-4">
+      <div className="card meetly-calendar overflow-hidden p-2 md:p-3">
         <FullCalendar
           key={narrow ? "narrow" : "wide"}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
@@ -223,16 +223,16 @@ export default function CalendarView() {
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="size-4 accent-[var(--accent)]"
+                className="size-4 accent-[var(--brand)]"
                 checked={draft.weekly}
                 onChange={(e) => setDraft({ ...draft, weekly: e.target.checked })}
               />
               Repeats every week
             </label>
-            {error && <p className="rounded-xl bg-danger/10 px-3.5 py-2.5 text-sm text-danger">{error}</p>}
+            {error && <p className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
             <div className="mt-2 flex items-center justify-between gap-2">
               {draft.id ? (
-                <button onClick={remove} disabled={saving} className="btn text-danger hover:bg-danger/10">
+                <button onClick={remove} disabled={saving} className="btn-danger">
                   <Trash2 className="size-4" />
                   Delete
                 </button>

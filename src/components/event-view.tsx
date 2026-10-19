@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   CalendarCheck,
   Check,
+  ChevronRight,
   Copy,
   MessageCircle,
   Repeat,
@@ -177,7 +178,7 @@ export default function EventView({ id }: { id: string }) {
     await load();
   }
 
-  if (!loaded) return <div className="h-40 animate-pulse rounded-2xl bg-surface-muted" />;
+  if (!loaded) return <div className="h-40 animate-pulse rounded-lg bg-border" />;
   if (missing || !event) {
     return (
       <div className="card p-10 text-center">
@@ -198,291 +199,320 @@ export default function EventView({ id }: { id: string }) {
       ? { start: new Date(event.final_start!).getTime(), durationMin: event.duration_min }
       : null;
 
-  return (
-    <>
-      <header className="mb-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={event.status} />
-          {event.kind === "weekly" && (
-            <Badge>
-              <Repeat className="mr-1 size-3" /> Every week
-            </Badge>
-          )}
-          <Badge>{fmtDuration(event.duration_min)}</Badge>
-          <Badge>Week of {weekStart.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</Badge>
-        </div>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{event.title}</h1>
-        {event.description && <p className="mt-1 max-w-2xl text-sm text-muted">{event.description}</p>}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href={`/chat/${id}`} className="btn-secondary">
-            <MessageCircle className="size-4" /> Chat
-          </Link>
-          {isHost && event.status !== "cancelled" && (
-            <button
-              className="btn text-danger hover:bg-danger/10"
-              disabled={busy}
-              onClick={() => confirm("Cancel this event for everyone?") && rpc("cancel_event", { eid: id }, "Event cancelled.")}
-            >
-              Cancel event
-            </button>
-          )}
-          {!isHost && (
-            <button
-              className="btn text-muted hover:bg-surface-muted"
-              onClick={async () => {
-                if (!confirm("Leave this event?")) return;
-                await supabase.from("event_members").delete().eq("event_id", id).eq("user_id", userId);
-                router.push("/home");
-              }}
-            >
-              Leave
-            </button>
-          )}
-        </div>
-      </header>
-
-      {notice && (
-        <p
-          role="status"
-          className={`mb-4 rounded-xl px-3.5 py-2.5 text-sm ${
-            notice.error ? "bg-danger/10 text-danger" : "bg-accent-soft text-accent"
-          }`}
-        >
-          {notice.text}
-        </p>
-      )}
-
-      {proposed && event.status !== "cancelled" && (
-        <ProposalCard
-          event={event}
-          me={me}
-          isHost={isHost}
-          members={members}
-          busy={busy}
-          onRespond={(accept) => rpc("respond_to_proposal", { eid: id, accept }, accept ? "Added to your calendar." : "Declined.")}
-          onFinalize={() => rpc("finalize_event", { eid: id }, "Meeting confirmed.")}
-        />
-      )}
-
-      <div role="tablist" className="mb-4 flex gap-1 rounded-xl bg-surface-muted p-1 text-sm font-medium">
-        {(
-          [
-            ["availability", "Your availability"],
-            ["group", "Group schedule"],
-            ["people", `People (${members.length})`],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            role="tab"
-            aria-selected={activeTab === key}
-            onClick={() => setTab(key)}
-            className={`flex-1 rounded-lg px-3 py-2 transition ${
-              activeTab === key ? "bg-surface shadow-sm" : "text-muted hover:text-foreground"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === "availability" && (
-        <section>
-          {closed ? (
-            <p className="card p-5 text-sm text-muted">
-              This event is {event.status}, so availability can no longer be changed.
-            </p>
-          ) : (
-            <>
-              <p className="mb-3 text-sm text-muted">
-                {prefilled
-                  ? "We pre-filled this from your calendar. "
-                  : ""}
-                Drag to paint the times you are free (green). Only these time slots are shared, never event names.
-              </p>
-              <div className="mb-3 flex flex-wrap items-center gap-3">
-                <button className="btn-secondary" onClick={fillFromCalendar}>
-                  Fill from my calendar
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => {
-                    setDraft(new Set());
-                    markDirty(true);
-                    setSync(false);
-                  }}
-                >
-                  Clear
-                </button>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-4 accent-[var(--accent)]"
-                    checked={sync}
-                    onChange={(e) => toggleSync(e.target.checked)}
-                  />
-                  Keep in sync with my calendar
-                </label>
-              </div>
-              <WeekGrid
-                weekStart={weekStart}
-                mode="paint"
-                selected={draft}
-                onChange={(next) => {
-                  setDraft(next);
-                  markDirty(true);
-                  setSync(false);
-                }}
-              />
-              <div className="mt-4 flex items-center gap-3">
-                <button className="btn-primary" onClick={saveAvailability} disabled={saving}>
-                  {saving ? "Saving…" : me?.has_shared ? "Update availability" : "Share availability"}
-                </button>
-                {dirty && <span className="text-sm text-muted">Unsaved changes</span>}
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
-      {activeTab === "group" && (
-        <section>
-          <p className="mb-3 text-sm text-muted">
-            {sharedCount} of {members.length} people have shared their availability. Darker means more people are free.
-            {isHost ? " Click a slot, or pick a suggestion, to choose the meeting start." : ""}
-          </p>
-
-          {suggestions.length > 0 && !closed && (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="flex items-center gap-1.5 text-sm font-medium">
-                <Sparkles className="size-4 text-accent" /> Best times
-              </span>
-              {suggestions.map((s) => (
-                <button
-                  key={s.start}
-                  onClick={() => isHost && setCandidate(s.start)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                    candidate === s.start ? "border-accent bg-accent-soft text-accent" : "border-border hover:bg-surface-muted"
-                  } ${isHost ? "" : "cursor-default"}`}
-                >
-                  {fmtRange(s.start, s.start + event.duration_min * 60_000)} · {s.minCount}/{members.length}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <WeekGrid
-            weekStart={weekStart}
-            mode="heat"
-            heat={heat}
-            total={members.length}
-            highlight={highlight}
-            onPick={isHost && !closed ? setCandidate : undefined}
-          />
-
-          {isHost && candidate && !closed && (
-            <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="text-sm text-muted">Selected time</p>
-                <p className="font-medium">{fmtRange(candidate, candidate + event.duration_min * 60_000)}</p>
-                <p className="text-xs text-muted">
-                  {heat.get(candidate)?.count ?? 0} of {members.length} free at the start
-                  {event.kind === "weekly" ? " · repeats every week" : ""}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button className="btn-secondary" onClick={() => setCandidate(null)}>
-                  Clear
-                </button>
-                <button
-                  className="btn-primary"
-                  disabled={busy}
-                  onClick={async () => {
-                    await rpc("propose_time", { eid: id, start_ts: new Date(candidate).toISOString() }, "Proposal sent. Waiting for approvals.");
-                    setCandidate(null);
-                  }}
-                >
-                  <Send className="size-4" /> Propose this time
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
-      {activeTab === "people" && (
-        <PeopleSection
-          event={event}
-          members={members}
-          isHost={isHost}
-          userId={userId}
-          onChanged={load}
-          flash={flash}
-        />
-      )}
-    </>
-  );
-}
-
-function ProposalCard({
-  event,
-  me,
-  isHost,
-  members,
-  busy,
-  onRespond,
-  onFinalize,
-}: {
-  event: MeetEvent;
-  me?: EventMember;
-  isHost: boolean;
-  members: EventMember[];
-  busy: boolean;
-  onRespond: (accept: boolean) => void;
-  onFinalize: () => void;
-}) {
   const accepted = members.filter((m) => m.approval === "accepted").length;
   const confirmed = event.status === "confirmed";
+  const cancelled = event.status === "cancelled";
+  const sharePct = members.length ? Math.round((sharedCount / members.length) * 100) : 0;
+  const editLabel = me?.has_shared ? "Edit my availability" : "Set my availability";
+
   return (
-    <div className={`card mb-6 border-2 p-5 ${confirmed ? "border-emerald-500/50" : "border-accent/50"}`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="flex items-center gap-2 text-sm text-muted">
-            <CalendarCheck className="size-4" />
-            {confirmed ? "Confirmed time" : "Proposed time"}
-          </p>
-          <p className="mt-1 text-lg font-semibold">{fmtRange(event.final_start!, event.final_end!)}</p>
-          <p className="mt-1 text-sm text-muted">
-            {accepted} of {members.length} accepted{event.kind === "weekly" ? " · repeats every week" : ""}
-          </p>
+    <>
+      <nav aria-label="Breadcrumb" className="mb-3 flex items-center gap-1 text-xs text-muted">
+        <Link href="/home" className="link">
+          Home
+        </Link>
+        <ChevronRight className="size-3" />
+        <span className="truncate">{event.title}</span>
+      </nav>
+
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+          <header className="mb-4">
+            <h1 className="text-xl font-semibold">{event.title}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {event.kind === "weekly" && (
+                <Badge>
+                  <Repeat className="mr-1 size-3" /> Every week
+                </Badge>
+              )}
+              <Badge>{fmtDuration(event.duration_min)}</Badge>
+              <Badge>Week of {weekStart.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</Badge>
+            </div>
+            {event.description && <p className="mt-2 max-w-2xl text-sm text-muted">{event.description}</p>}
+          </header>
+
+          {notice && (
+            <p
+              role="status"
+              className={`mb-4 rounded-md border px-3 py-2 text-sm ${
+                notice.error ? "border-danger/40 bg-danger/10 text-danger" : "border-success/40 bg-success/10 text-foreground"
+              }`}
+            >
+              {notice.text}
+            </p>
+          )}
+
+          <div role="tablist" className="mb-4 flex overflow-x-auto border-b border-border text-sm">
+            {(
+              [
+                ["availability", "Your availability"],
+                ["group", "Group schedule"],
+                ["people", `People (${members.length})`],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={activeTab === key}
+                onClick={() => setTab(key)}
+                className={`-mb-px border-b-[3px] px-4 py-2.5 font-medium whitespace-nowrap transition ${
+                  activeTab === key
+                    ? "border-brand text-foreground"
+                    : "border-transparent text-muted hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === "availability" && (
+            <section>
+              {closed ? (
+                <p className="card p-4 text-sm text-muted">
+                  This event is {event.status}, so availability can no longer be changed.
+                </p>
+              ) : (
+                <>
+                  <p className="mb-3 text-sm text-muted">
+                    {prefilled ? "We pre-filled this from your calendar. " : ""}
+                    Drag to paint the times you are free (green). Only these time slots are shared, never event names.
+                  </p>
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <button className="btn-secondary" onClick={fillFromCalendar}>
+                      Fill from my calendar
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setDraft(new Set());
+                        markDirty(true);
+                        setSync(false);
+                      }}
+                    >
+                      Clear
+                    </button>
+                    <label className="ml-1 flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        className="size-4 accent-[var(--brand)]"
+                        checked={sync}
+                        onChange={(e) => toggleSync(e.target.checked)}
+                      />
+                      Keep in sync with my calendar
+                    </label>
+                  </div>
+                  <WeekGrid
+                    weekStart={weekStart}
+                    mode="paint"
+                    selected={draft}
+                    onChange={(next) => {
+                      setDraft(next);
+                      markDirty(true);
+                      setSync(false);
+                    }}
+                  />
+                  <div className="mt-3 flex items-center gap-3">
+                    <button className="btn-primary" onClick={saveAvailability} disabled={saving}>
+                      {saving ? "Saving…" : me?.has_shared ? "Update availability" : "Share availability"}
+                    </button>
+                    {dirty && <span className="text-sm text-muted">Unsaved changes</span>}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+
+          {activeTab === "group" && (
+            <section>
+              <p className="mb-3 text-sm text-muted">
+                {sharedCount} of {members.length} people have shared their availability. Darker means more people are free.
+                {isHost && !closed ? " Click a slot, or pick a suggestion, to choose the meeting start." : ""}
+              </p>
+
+              {suggestions.length > 0 && !closed && (
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="flex items-center gap-1.5 text-sm font-semibold">
+                    <Sparkles className="size-4 text-brand" /> Best times
+                  </span>
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.start}
+                      onClick={() => isHost && setCandidate(s.start)}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        candidate === s.start
+                          ? "border-brand bg-brand/15"
+                          : "border-border bg-surface hover:bg-surface-muted"
+                      } ${isHost ? "" : "cursor-default"}`}
+                    >
+                      {fmtRange(s.start, s.start + event.duration_min * 60_000)} · {s.minCount}/{members.length}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <WeekGrid
+                weekStart={weekStart}
+                mode="heat"
+                heat={heat}
+                total={members.length}
+                highlight={highlight}
+                onPick={isHost && !closed ? setCandidate : undefined}
+              />
+            </section>
+          )}
+
+          {activeTab === "people" && (
+            <PeopleSection
+              event={event}
+              members={members}
+              isHost={isHost}
+              userId={userId}
+              onChanged={load}
+              flash={flash}
+            />
+          )}
         </div>
 
-        {!confirmed && !isHost && me && (
-          <div className="flex gap-2">
-            <button
-              className="btn-secondary"
-              disabled={busy || me.approval === "declined"}
-              onClick={() => onRespond(false)}
-            >
-              <X className="size-4" /> {me.approval === "declined" ? "Declined" : "Decline"}
-            </button>
-            <button className="btn-primary" disabled={busy || me.approval === "accepted"} onClick={() => onRespond(true)}>
-              <Check className="size-4" /> {me.approval === "accepted" ? "Accepted" : "Accept"}
-            </button>
+        <aside className="order-first space-y-3 lg:sticky lg:top-[4.5rem] lg:order-none lg:col-start-2 lg:row-start-1">
+          <div className="card overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border bg-surface-muted px-4 py-2.5">
+              <StatusBadge status={event.status} />
+              <span className="text-xs text-muted">
+                {sharedCount} of {members.length} shared
+              </span>
+            </div>
+
+            <div className="space-y-3 p-4">
+              {proposed && !cancelled ? (
+                <div>
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-muted">
+                    <CalendarCheck className="size-3.5" />
+                    {confirmed ? "Confirmed time" : "Proposed time"}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold leading-snug">{fmtRange(event.final_start!, event.final_end!)}</p>
+                  <p className="text-sm text-muted">
+                    {accepted} of {members.length} accepted{event.kind === "weekly" ? " · repeats every week" : ""}
+                  </p>
+                </div>
+              ) : candidate && isHost && !closed ? (
+                <div>
+                  <p className="text-xs font-medium text-muted">Selected time</p>
+                  <p className="mt-1 text-lg font-semibold leading-snug">
+                    {fmtRange(candidate, candidate + event.duration_min * 60_000)}
+                  </p>
+                  <p className="text-sm text-muted">
+                    {heat.get(candidate)?.count ?? 0} of {members.length} free at the start
+                    {event.kind === "weekly" ? " · repeats every week" : ""}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  {cancelled
+                    ? "This event was cancelled."
+                    : isHost
+                      ? "No time chosen yet. Pick one on the Group schedule tab."
+                      : "No time chosen yet. The host will pick one once everyone has shared."}
+                </p>
+              )}
+
+              {!cancelled && (
+                <div className="h-1.5 overflow-hidden rounded-full bg-border" aria-hidden>
+                  <div className="h-full rounded-full bg-success transition-all" style={{ width: `${sharePct}%` }} />
+                </div>
+              )}
+
+              {isHost && candidate && !closed && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="btn-primary w-full"
+                    disabled={busy}
+                    onClick={async () => {
+                      await rpc("propose_time", { eid: id, start_ts: new Date(candidate).toISOString() }, "Proposal sent. Waiting for approvals.");
+                      setCandidate(null);
+                    }}
+                  >
+                    <Send className="size-4" /> Propose this time
+                  </button>
+                  <button className="btn-secondary w-full" onClick={() => setCandidate(null)}>
+                    Clear selection
+                  </button>
+                </div>
+              )}
+
+              {!isHost && event.status === "proposed" && me && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="btn-primary w-full"
+                    disabled={busy || me.approval === "accepted"}
+                    onClick={() => rpc("respond_to_proposal", { eid: id, accept: true }, "Added to your calendar.")}
+                  >
+                    <Check className="size-4" /> {me.approval === "accepted" ? "Accepted" : "Accept"}
+                  </button>
+                  <button
+                    className="btn-secondary w-full"
+                    disabled={busy || me.approval === "declined"}
+                    onClick={() => rpc("respond_to_proposal", { eid: id, accept: false }, "Declined.")}
+                  >
+                    <X className="size-4" /> {me.approval === "declined" ? "Declined" : "Decline"}
+                  </button>
+                </div>
+              )}
+
+              {isHost && event.status === "proposed" && !candidate && (
+                <button
+                  className="btn-cta w-full"
+                  disabled={busy}
+                  onClick={() => rpc("finalize_event", { eid: id }, "Meeting confirmed.")}
+                >
+                  Confirm without waiting
+                </button>
+              )}
+
+              {me && !closed && activeTab !== "availability" && !(isHost && candidate) && (
+                <button className="btn-cta w-full" onClick={() => setTab("availability")}>
+                  {editLabel}
+                </button>
+              )}
+
+              {confirmed && (
+                <Link href="/calendar" className="btn-secondary w-full">
+                  View in calendar
+                </Link>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-sm">
+              <Link href={`/chat/${id}`} className="link inline-flex items-center gap-1.5">
+                <MessageCircle className="size-4" /> Open chat
+              </Link>
+              {isHost && !cancelled ? (
+                <button
+                  className="text-danger hover:underline"
+                  disabled={busy}
+                  onClick={() => confirm("Cancel this event for everyone?") && rpc("cancel_event", { eid: id }, "Event cancelled.")}
+                >
+                  Cancel event
+                </button>
+              ) : (
+                !isHost && (
+                  <button
+                    className="text-muted hover:text-foreground hover:underline"
+                    onClick={async () => {
+                      if (!confirm("Leave this event?")) return;
+                      await supabase.from("event_members").delete().eq("event_id", id).eq("user_id", userId);
+                      router.push("/home");
+                    }}
+                  >
+                    Leave event
+                  </button>
+                )
+              )}
+            </div>
           </div>
-        )}
-        {!confirmed && isHost && (
-          <button className="btn-secondary" disabled={busy} onClick={onFinalize}>
-            Confirm without waiting
-          </button>
-        )}
-        {confirmed && (
-          <Link href="/calendar" className="btn-secondary">
-            View in calendar
-          </Link>
-        )}
+        </aside>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -521,7 +551,7 @@ function PeopleSection({
   return (
     <section className="space-y-5">
       {isHost && event.status !== "cancelled" && (
-        <div className="card space-y-4 p-5">
+        <div className="card space-y-3 p-4">
           <form onSubmit={invite} className="flex gap-2">
             <input
               type="email"
@@ -555,8 +585,8 @@ function PeopleSection({
           const name = m.profiles?.display_name ?? "Someone";
           const host = m.user_id === event.owner_id;
           return (
-            <li key={m.user_id} className="flex items-center gap-3 p-4">
-              <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+            <li key={m.user_id} className="flex flex-wrap items-center gap-2 px-4 py-3">
+              <span className="grid size-8 place-items-center rounded-full bg-header-2 text-sm font-semibold text-white">
                 {name.slice(0, 1).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
@@ -574,7 +604,7 @@ function PeopleSection({
               {isHost && !host && (
                 <button
                   aria-label={`Remove ${name}`}
-                  className="rounded-lg p-1.5 text-muted hover:bg-danger/10 hover:text-danger"
+                  className="rounded-full p-1.5 text-muted hover:bg-danger/10 hover:text-danger"
                   onClick={async () => {
                     if (!confirm(`Remove ${name}?`)) return;
                     await supabase.from("event_members").delete().eq("event_id", event.id).eq("user_id", m.user_id);

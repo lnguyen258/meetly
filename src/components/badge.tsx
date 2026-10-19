@@ -1,12 +1,15 @@
 import type { EventStatus } from "@/lib/types";
 
 const STYLES: Record<string, string> = {
-  collecting: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  proposed: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
-  confirmed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-  cancelled: "bg-neutral-500/15 text-neutral-600 dark:text-neutral-300",
-  neutral: "bg-surface-muted text-muted",
-  action: "bg-accent-soft text-accent",
+  collecting:
+    "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-500/15 dark:text-amber-200",
+  proposed:
+    "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-700/60 dark:bg-sky-500/15 dark:text-sky-200",
+  confirmed:
+    "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700/60 dark:bg-emerald-500/15 dark:text-emerald-200",
+  cancelled: "border-border bg-surface-muted text-muted",
+  neutral: "border-border bg-surface-muted text-muted",
+  action: "border-brand/50 bg-brand/15 text-[#7a4100] dark:text-[#ffc266]",
 };
 
 const LABELS: Record<EventStatus, string> = {
@@ -23,7 +26,7 @@ export function StatusBadge({ status }: { status: EventStatus }) {
 export function Badge({ tone = "neutral", children }: { tone?: string; children: React.ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[tone] ?? STYLES.neutral}`}
+      className={`inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium ${STYLES[tone] ?? STYLES.neutral}`}
     >
       {children}
     </span>

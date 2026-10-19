@@ -77,7 +77,7 @@ export default function NotificationsView() {
           ) : undefined
         }
       />
-      {items === null && <div className="h-32 animate-pulse rounded-2xl bg-surface-muted" />}
+      {items === null && <div className="h-32 animate-pulse rounded-lg bg-border" />}
       {items?.length === 0 && (
         <EmptyState
           icon={BellOff}
@@ -93,18 +93,18 @@ export default function NotificationsView() {
               <li key={n.id}>
                 <button
                   onClick={() => open(n)}
-                  className={`flex w-full items-start gap-4 p-4 text-left transition hover:bg-surface-muted ${n.read_at ? "" : "bg-accent-soft/40"}`}
+                  className={`flex w-full items-start gap-3 border-l-4 px-4 py-3 text-left transition hover:bg-surface-muted ${n.read_at ? "border-l-transparent" : "border-l-brand bg-brand/10"}`}
                 >
-                  <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-header-2 text-white">
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{n.title}</span>
+                    <span className={`block truncate ${n.read_at ? "font-medium" : "font-semibold"}`}>{n.title}</span>
                     <span className="block text-sm text-muted">{n.body}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2 text-xs text-muted">
                     {timeAgo(n.created_at)}
-                    {!n.read_at && <span className="size-2 rounded-full bg-accent" aria-label="Unread" />}
+                    {!n.read_at && <span className="size-2 rounded-full bg-brand" aria-label="Unread" />}
                   </span>
                 </button>
               </li>

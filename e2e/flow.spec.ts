@@ -11,9 +11,9 @@ async function signUp(browser: Browser, name: string) {
   const page = await context.newPage();
   const email = `meetly.test.${name}.${stamp}@gmail.com`;
   await page.goto("/login");
-  await page.getByRole("button", { name: "Create an account" }).click();
-  await page.getByPlaceholder("you@example.com").fill(email);
-  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Create your account" }).click();
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL("**/home");
   return { page, email, context };

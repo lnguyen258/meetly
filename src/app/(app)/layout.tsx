@@ -15,21 +15,22 @@ async function AuthGate({ children }: { children: React.ReactNode }) {
   return (
     <UserProvider value={value}>
       <Nav />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 md:px-10 md:pb-10 md:pt-10">
-        {children}
-      </main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 md:pb-10">{children}</main>
     </UserProvider>
   );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col">
       <Suspense
         fallback={
-          <main className="flex-1 px-4 pt-6 md:px-10 md:pt-10">
-            <div className="h-8 w-40 animate-pulse rounded-lg bg-surface-muted" />
-          </main>
+          <>
+            <div className="h-14 bg-header" />
+            <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-5">
+              <div className="h-7 w-40 animate-pulse rounded bg-border" />
+            </main>
+          </>
         }
       >
         <AuthGate>{children}</AuthGate>

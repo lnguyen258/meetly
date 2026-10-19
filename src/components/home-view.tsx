@@ -13,52 +13,78 @@ import type { Approval, MeetEvent } from "@/lib/types";
 
 type Row = { has_shared: boolean; approval: Approval; events: MeetEvent };
 
-function EventCard({ row, userId }: { row: Row; userId: string }) {
+const STRIPE: Record<string, string> = {
+  collecting: "border-l-amber-400",
+  proposed: "border-l-sky-500",
+  confirmed: "border-l-success",
+  cancelled: "border-l-border",
+};
+
+function EventRow({ row, userId }: { row: Row; userId: string }) {
   const e = row.events;
   const host = e.owner_id === userId;
   const needsAvailability = e.status === "collecting" && !row.has_shared;
   const needsApproval = e.status === "proposed" && !host && row.approval === "pending";
+  const cta = needsAvailability ? "Share availability" : needsApproval ? "Review time" : null;
   return (
-    <Link
-      href={`/events/${e.id}`}
-      className="card group flex items-center gap-4 p-4 transition hover:border-accent/50 hover:shadow-md"
-    >
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate font-medium">{e.title}</h3>
-          {host && <Badge tone="action">Host</Badge>}
-          {e.kind === "weekly" && (
-            <Badge>
-              <Repeat className="mr-1 size-3" /> Weekly
-            </Badge>
-          )}
+    <li>
+      <Link
+        href={`/events/${e.id}`}
+        className={`flex items-center gap-3 border-l-4 px-4 py-3 transition hover:bg-surface-muted ${STRIPE[e.status]}`}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h3 className="truncate font-semibold">{e.title}</h3>
+            {host && <Badge tone="action">Host</Badge>}
+            {e.kind === "weekly" && (
+              <Badge>
+                <Repeat className="mr-1 size-3" /> Weekly
+              </Badge>
+            )}
+          </div>
+          <p className="mt-0.5 text-sm text-muted">
+            {e.final_start && e.final_end
+              ? fmtRange(e.final_start, e.final_end)
+              : `Week of ${parseDateOnly(e.week_start).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${fmtDuration(e.duration_min)}`}
+          </p>
         </div>
-        <p className="mt-1 text-sm text-muted">
-          {e.final_start && e.final_end
-            ? fmtRange(e.final_start, e.final_end)
-            : `Week of ${parseDateOnly(e.week_start).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${fmtDuration(e.duration_min)}`}
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <StatusBadge status={e.status} />
-          {needsAvailability && <Badge tone="action">Share your availability</Badge>}
-          {needsApproval && <Badge tone="action">Approve the time</Badge>}
-        </div>
-      </div>
-      <ChevronRight className="size-5 text-muted transition group-hover:translate-x-0.5" />
-    </Link>
+        <StatusBadge status={e.status} />
+        {cta ? (
+          <span className="btn-primary pointer-events-none hidden !py-1 sm:inline-flex">{cta}</span>
+        ) : (
+          <ChevronRight className="size-4 text-muted" />
+        )}
+      </Link>
+    </li>
   );
 }
 
-function Section({ title, rows, userId }: { title: string; rows: Row[]; userId: string }) {
+function Section({
+  title,
+  rows,
+  userId,
+  highlight,
+}: {
+  title: string;
+  rows: Row[];
+  userId: string;
+  highlight?: boolean;
+}) {
   if (!rows.length) return null;
   return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
-      <div className="grid gap-3">
+    <section className={`card mb-4 overflow-hidden ${highlight ? "border-brand/60" : ""}`}>
+      <h2
+        className={`border-b px-4 py-2 text-sm font-semibold ${
+          highlight ? "border-brand/40 bg-brand/15" : "border-border bg-surface-muted"
+        }`}
+      >
+        {title} <span className="font-normal text-muted">({rows.length})</span>
+      </h2>
+      <ul className="divide-y divide-border">
         {rows.map((r) => (
-          <EventCard key={r.events.id} row={r} userId={userId} />
+          <EventRow key={r.events.id} row={r} userId={userId} />
         ))}
-      </div>
+      </ul>
     </section>
   );
 }
@@ -118,23 +144,22 @@ export default function HomeView() {
       <PageHeader
         title="Home"
         subtitle="Your upcoming meetings and scheduling requests."
-        action={
-          <Link href="/events/new" className="btn-primary">
-            <Plus className="size-4" />
-            New event
-          </Link>
-        }
       />
 
-      {rows === null && <div className="h-32 animate-pulse rounded-2xl bg-surface-muted" />}
+      {rows === null && <div className="h-32 animate-pulse rounded-lg bg-border" />}
       {empty && (
         <EmptyState
           icon={CalendarPlus}
           title="No meetings yet"
           body="Create an event, invite your team, and see everyone's availability in one place."
+          action={
+            <Link href="/events/new" className="btn-primary">
+              <Plus className="size-4" /> Create your first event
+            </Link>
+          }
         />
       )}
-      <Section title="Needs your attention" rows={groups.action} userId={userId} />
+      <Section title="Needs your attention" rows={groups.action} userId={userId} highlight />
       <Section title="Upcoming" rows={groups.upcoming} userId={userId} />
       <Section title="You are hosting" rows={groups.hosting} userId={userId} />
       <Section title="Waiting on the host" rows={groups.waiting} userId={userId} />

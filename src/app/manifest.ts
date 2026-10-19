@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Find a time that works for everyone, live.",
     start_url: "/home",
     display: "standalone",
-    background_color: "#f7f7fb",
-    theme_color: "#5b5bf0",
+    background_color: "#eaeded",
+    theme_color: "#131921",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
   };
 }

@@ -82,12 +82,12 @@ export function WeekGrid({
 
   return (
     <div className="card overflow-hidden">
-      <div className="grid grid-cols-[3rem_repeat(7,minmax(0,1fr))] border-b border-border bg-surface-muted text-center text-xs font-medium">
+      <div className="grid grid-cols-[3rem_repeat(7,minmax(0,1fr))] border-b border-border bg-surface-muted text-center text-xs font-semibold">
         <div />
         {days.map((d) => (
           <div
             key={d.getTime()}
-            className={`py-2 ${d.getTime() === todayMs ? "text-accent" : "text-muted"}`}
+            className={`py-2 ${d.getTime() === todayMs ? "text-foreground" : "text-muted"}`}
           >
             {dayFmt.format(d)}
           </div>
@@ -119,7 +119,7 @@ export function WeekGrid({
                 const style =
                   mode === "heat" && count > 0 && total > 0
                     ? {
-                        background: `color-mix(in srgb, var(--accent) ${Math.round((count / total) * 100)}%, transparent)`,
+                        background: `color-mix(in srgb, var(--heat) ${Math.max(22, Math.round((count / total) * 100))}%, transparent)`,
                       }
                     : undefined;
                 const title =
@@ -136,8 +136,8 @@ export function WeekGrid({
                     style={style}
                     onClick={mode === "heat" && onPick ? () => onPick(ms) : undefined}
                     className={`h-6 ${hourStart ? "border-t border-border" : "border-t border-border/40"} ${
-                      isFree ? "bg-emerald-500/60" : ""
-                    } ${inHighlight(ms) ? "ring-2 ring-inset ring-teal-600" : ""} ${
+                      isFree ? "bg-success/55" : ""
+                    } ${inHighlight(ms) ? "ring-2 ring-inset ring-foreground" : ""} ${
                       mode === "heat" && onPick ? "cursor-pointer hover:brightness-95" : ""
                     } ${mode === "paint" && !disabled ? "cursor-crosshair" : ""}`}
                   />

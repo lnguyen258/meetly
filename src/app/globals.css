@@ -1,32 +1,58 @@
 @import "tailwindcss";
 
+/* Meetly design tokens — Amazon-inspired: navy header, orange brand, yellow primary actions. */
 :root {
-  --background: #f7f7fb;
+  --background: #eaeded;
   --surface: #ffffff;
-  --surface-muted: #f1f1f7;
-  --foreground: #16162a;
-  --muted: #6b6b85;
-  --border: #e4e4ef;
-  --accent: #5b5bf0;
-  --accent-hover: #4a4adb;
-  --accent-soft: #ececff;
+  --surface-muted: #f3f5f6;
+  --foreground: #0f1111;
+  --muted: #565959;
+  --border: #d5d9d9;
+  --input-border: #888c8c;
+
+  --header: #131921;
+  --header-2: #232f3e;
+  --brand: #ff9900;
+
+  --primary: #ffd814;
+  --primary-hover: #f7ca00;
+  --primary-foreground: #0f1111;
+  --secondary: #ffa41c;
+
+  --accent: #007185; /* links, selected states */
+  --accent-hover: #c7511f;
+  --accent-soft: #e7f4f5;
   --accent-foreground: #ffffff;
-  --danger: #dc2626;
+
+  --success: #067d62;
+  --danger: #b12704;
+  --today: #fef7e0;
+  --heat: #ff9900;
+  --free: #067d62;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0d0d17;
-    --surface: #161624;
-    --surface-muted: #1d1d2f;
-    --foreground: #ececf6;
-    --muted: #9a9ab4;
-    --border: #2a2a40;
-    --accent: #8080ff;
-    --accent-hover: #9696ff;
-    --accent-soft: #24244a;
-    --accent-foreground: #0d0d17;
-    --danger: #f87171;
+    --background: #0f1111;
+    --surface: #1b232e;
+    --surface-muted: #232f3e;
+    --foreground: #e7e9ea;
+    --muted: #a3adb8;
+    --border: #364352;
+    --input-border: #5b6b7b;
+
+    --header: #0b1016;
+    --header-2: #232f3e;
+
+    --accent: #4db6c7;
+    --accent-hover: #ffa41c;
+    --accent-soft: #163239;
+    --accent-foreground: #0f1111;
+
+    --success: #3dbe9b;
+    --danger: #f27a5a;
+    --today: #2a2a18;
+    --free: #2fae8e;
   }
 }
 
@@ -37,11 +63,21 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-input-border: var(--input-border);
+  --color-header: var(--header);
+  --color-header-2: var(--header-2);
+  --color-brand: var(--brand);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
   --color-danger: var(--danger);
+  --color-today: var(--today);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -50,26 +86,45 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
-@utility input {
-  @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/15;
-}
-
+/* Buttons: fully rounded pills with a thin border, like Amazon. */
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-transparent px-4 py-1.5 text-sm font-medium whitespace-nowrap transition focus-visible:ring-[3px] focus-visible:ring-brand/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 @utility btn-primary {
-  @apply btn bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover;
+  @apply btn border-[#fcd200] bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] hover:bg-primary-hover;
+}
+
+@utility btn-cta {
+  @apply btn border-[#ff8f00] bg-secondary text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] hover:bg-[#fa8900];
 }
 
 @utility btn-secondary {
-  @apply btn border border-border bg-surface hover:bg-surface-muted;
+  @apply btn border-border bg-surface text-foreground shadow-sm hover:bg-surface-muted;
+}
+
+@utility btn-danger {
+  @apply btn border-danger/40 bg-surface text-danger hover:bg-danger/10;
+}
+
+@utility btn-ghost {
+  @apply btn text-muted hover:bg-surface-muted hover:text-foreground;
+}
+
+@utility input {
+  @apply w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted focus:border-[#e77600] focus:ring-[3px] focus:ring-[#e77600]/30;
 }
 
 @utility card {
-  @apply rounded-2xl border border-border bg-surface shadow-sm;
+  @apply rounded-lg border border-border bg-surface;
+}
+
+@utility link {
+  @apply text-accent hover:text-accent-hover hover:underline;
 }
 
 /* FullCalendar theming */
@@ -77,23 +132,24 @@ body {
   --fc-border-color: var(--border);
   --fc-page-bg-color: var(--surface);
   --fc-neutral-bg-color: var(--surface-muted);
-  --fc-today-bg-color: var(--accent-soft);
-  --fc-event-bg-color: var(--accent);
-  --fc-event-border-color: var(--accent);
-  --fc-event-text-color: var(--accent-foreground);
+  --fc-today-bg-color: var(--today);
+  --fc-event-bg-color: var(--header-2);
+  --fc-event-border-color: var(--header-2);
+  --fc-event-text-color: #ffffff;
   --fc-button-bg-color: var(--surface);
   --fc-button-border-color: var(--border);
   --fc-button-text-color: var(--foreground);
   --fc-button-hover-bg-color: var(--surface-muted);
-  --fc-button-hover-border-color: var(--border);
-  --fc-button-active-bg-color: var(--accent-soft);
-  --fc-button-active-border-color: var(--accent);
+  --fc-button-hover-border-color: var(--input-border);
+  --fc-button-active-bg-color: var(--primary);
+  --fc-button-active-border-color: #fcd200;
   --fc-now-indicator-color: var(--danger);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
-.meetly-calendar .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; }
-.meetly-calendar .fc-col-header-cell-cushion, .meetly-calendar .fc-timegrid-slot-label-cushion { font-weight: 500; font-size: 0.8rem; color: var(--muted); }
-.meetly-calendar .fc-button { border-radius: 0.75rem; text-transform: capitalize; font-size: 0.8rem; box-shadow: none !important; }
-.meetly-calendar .fc-button-active { color: var(--accent) !important; }
-.meetly-calendar .fc-event { border-radius: 0.5rem; padding: 1px 3px; cursor: pointer; }
-.meetly-calendar .fc .fc-event.meetly-meeting { --fc-event-bg-color: #0d9488; --fc-event-border-color: #0d9488; }
+.meetly-calendar .fc-toolbar-title { font-size: 1rem; font-weight: 600; }
+.meetly-calendar .fc-col-header-cell-cushion,
+.meetly-calendar .fc-timegrid-slot-label-cushion { font-weight: 500; font-size: 0.75rem; color: var(--muted); }
+.meetly-calendar .fc-button { border-radius: 9999px; text-transform: capitalize; font-size: 0.8rem; box-shadow: none !important; }
+.meetly-calendar .fc-button-active { color: var(--primary-foreground) !important; }
+.meetly-calendar .fc-event { border-radius: 4px; padding: 1px 3px; cursor: pointer; }
+.meetly-calendar .fc .fc-event.meetly-meeting { --fc-event-bg-color: var(--success); --fc-event-border-color: var(--success); }

@@ -50,7 +50,7 @@ export default function NewEventPage() {
         title="New event"
         subtitle="No fixed time yet. Pick the week, invite people, and find the best slot together."
       />
-      <form onSubmit={submit} className="card flex max-w-xl flex-col gap-5 p-6">
+      <form onSubmit={submit} className="card flex max-w-xl flex-col gap-4 p-5">
         <label className="flex flex-col gap-1.5 text-sm font-medium">
           Title
           <input
@@ -87,10 +87,10 @@ export default function NewEventPage() {
                 key={value}
                 onClick={() => setKind(value)}
                 aria-pressed={kind === value}
-                className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                className={`flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition ${
                   kind === value
-                    ? "border-accent bg-accent-soft text-accent"
-                    : "border-border hover:bg-surface-muted"
+                    ? "border-[#e77600] bg-brand/10 ring-1 ring-[#e77600]"
+                    : "border-input-border hover:bg-surface-muted"
                 }`}
               >
                 <Icon className="size-4" />
@@ -130,7 +130,7 @@ export default function NewEventPage() {
           </label>
         </div>
 
-        {error && <p className="rounded-xl bg-danger/10 px-3.5 py-2.5 text-sm text-danger">{error}</p>}
+        {error && <p className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
         <button disabled={busy || !title.trim()} className="btn-primary self-start">
           {busy ? "Creating…" : "Create & invite people"}
         </button>

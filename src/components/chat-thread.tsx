@@ -69,19 +69,19 @@ export default function ChatThread({ id }: { id: string }) {
   return (
     <div className="flex h-[calc(100dvh-9rem)] flex-col md:h-[calc(100dvh-6rem)]">
       <header className="mb-4 flex items-center gap-3">
-        <Link href="/chat" aria-label="Back to chats" className="rounded-lg p-2 hover:bg-surface-muted">
+        <Link href="/chat" aria-label="Back to chats" className="rounded-full p-2 hover:bg-border/60">
           <ArrowLeft className="size-5" />
         </Link>
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight">{title}</h1>
-          <Link href={`/events/${id}`} className="text-sm text-accent hover:underline">
+          <h1 className="truncate text-xl font-semibold">{title}</h1>
+          <Link href={`/events/${id}`} className="link text-sm">
             View event
           </Link>
         </div>
       </header>
 
       <div className="card flex-1 space-y-3 overflow-y-auto p-4">
-        {messages === null && <div className="h-8 w-1/2 animate-pulse rounded-lg bg-surface-muted" />}
+        {messages === null && <div className="h-8 w-1/2 animate-pulse rounded-lg bg-border" />}
         {messages?.length === 0 && (
           <p className="py-10 text-center text-sm text-muted">No messages yet. Say hi 👋</p>
         )}
@@ -94,7 +94,7 @@ export default function ChatThread({ id }: { id: string }) {
               </span>
               <p
                 className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm ${
-                  mine ? "bg-accent text-accent-foreground" : "bg-surface-muted"
+                  mine ? "rounded-br-sm bg-header-2 text-white" : "rounded-bl-sm bg-surface-muted"
                 }`}
               >
                 {m.body}
