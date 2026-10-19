@@ -73,7 +73,7 @@ body {
 }
 
 /* FullCalendar theming */
-.meetly-calendar {
+.meetly-calendar .fc {
   --fc-border-color: var(--border);
   --fc-page-bg-color: var(--surface);
   --fc-neutral-bg-color: var(--surface-muted);
@@ -92,7 +92,8 @@ body {
   font-size: 0.875rem;
 }
 .meetly-calendar .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; }
+.meetly-calendar .fc-col-header-cell-cushion, .meetly-calendar .fc-timegrid-slot-label-cushion { font-weight: 500; font-size: 0.8rem; color: var(--muted); }
 .meetly-calendar .fc-button { border-radius: 0.75rem; text-transform: capitalize; font-size: 0.8rem; box-shadow: none !important; }
 .meetly-calendar .fc-button-active { color: var(--accent) !important; }
 .meetly-calendar .fc-event { border-radius: 0.5rem; padding: 1px 3px; cursor: pointer; }
-.meetly-calendar .fc-event.meetly-meeting { --fc-event-bg-color: #0d9488; --fc-event-border-color: #0d9488; }
+.meetly-calendar .fc .fc-event.meetly-meeting { --fc-event-bg-color: #0d9488; --fc-event-border-color: #0d9488; }

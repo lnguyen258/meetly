@@ -174,7 +174,7 @@ export default function CalendarView() {
               : { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" }
           }
           firstDay={1}
-          height="auto"
+          height={narrow ? 620 : 720}
           nowIndicator
           selectable
           selectMirror

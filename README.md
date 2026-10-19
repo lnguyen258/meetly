@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meetly
 
-## Getting Started
+Live group scheduling on top of a personal calendar. A host invites people to a one-time or weekly event with no fixed time, everyone shares **free/busy slots only** (never event names), the host sees a live combined heatmap, proposes a time, and invitees approve it into their calendar.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router) · Supabase (Postgres, Auth, RLS, Realtime) · Tailwind 4 · FullCalendar · deployed on Vercel.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. `npm install`
+2. Create a Supabase project and run the SQL in `supabase/migrations/` **in order** (SQL Editor).
+3. Copy `.env.example` to `.env.local` and fill in the project URL and anon/publishable key.
+4. Supabase → Authentication → URL Configuration: add `http://localhost:3000/auth/callback` and your Vercel URL's `/auth/callback` as redirect URLs. Enable the Google provider for Google login.
+5. `npm run dev`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For Vercel, set the same two env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) and redeploy.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+- `npm test` — unit tests (availability expansion incl. DST, heatmap ranking).
+- `npm run test:e2e` — Playwright, two users through the full flow against the configured Supabase project. Turn **off** "Confirm email" in Supabase Auth while running it; it creates `meetly.test.*@gmail.com` accounts you can delete afterwards. Use `E2E_BASE_URL=http://localhost:3001` to target an already running server.
 
-To learn more about Next.js, take a look at the following resources:
+## How it works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Availability is stored as free 30-minute slots. Raw slots are readable only by their owner; everyone else gets aggregates through the `event_heatmap` RPC (only the host also receives names).
+- The workflow (invite, share, propose, approve, finalize, cancel) lives in `security definer` RPCs so permissions and notifications cannot be bypassed from the client.
+- "Keep in sync with my calendar" re-submits a member's slots whenever their calendar changes, so nobody needs a new link when plans change.
