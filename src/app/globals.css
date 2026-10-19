@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f7f7fb;
+  --surface: #ffffff;
+  --surface-muted: #f1f1f7;
+  --foreground: #16162a;
+  --muted: #6b6b85;
+  --border: #e4e4ef;
+  --accent: #5b5bf0;
+  --accent-hover: #4a4adb;
+  --accent-soft: #ececff;
+  --accent-foreground: #ffffff;
+  --danger: #dc2626;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0d0d17;
+    --surface: #161624;
+    --surface-muted: #1d1d2f;
+    --foreground: #ececf6;
+    --muted: #9a9ab4;
+    --border: #2a2a40;
+    --accent: #8080ff;
+    --accent-hover: #9696ff;
+    --accent-soft: #24244a;
+    --accent-foreground: #0d0d17;
+    --danger: #f87171;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+@utility input {
+  @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/15;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply btn bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover;
+}
+
+@utility btn-secondary {
+  @apply btn border border-border bg-surface hover:bg-surface-muted;
+}
+
+@utility card {
+  @apply rounded-2xl border border-border bg-surface shadow-sm;
+}
+
+/* FullCalendar theming */
+.meetly-calendar {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--surface);
+  --fc-neutral-bg-color: var(--surface-muted);
+  --fc-today-bg-color: var(--accent-soft);
+  --fc-event-bg-color: var(--accent);
+  --fc-event-border-color: var(--accent);
+  --fc-event-text-color: var(--accent-foreground);
+  --fc-button-bg-color: var(--surface);
+  --fc-button-border-color: var(--border);
+  --fc-button-text-color: var(--foreground);
+  --fc-button-hover-bg-color: var(--surface-muted);
+  --fc-button-hover-border-color: var(--border);
+  --fc-button-active-bg-color: var(--accent-soft);
+  --fc-button-active-border-color: var(--accent);
+  --fc-now-indicator-color: var(--danger);
+  font-size: 0.875rem;
+}
+.meetly-calendar .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; }
+.meetly-calendar .fc-button { border-radius: 0.75rem; text-transform: capitalize; font-size: 0.8rem; box-shadow: none !important; }
+.meetly-calendar .fc-button-active { color: var(--accent) !important; }
+.meetly-calendar .fc-event { border-radius: 0.5rem; padding: 1px 3px; cursor: pointer; }
+.meetly-calendar .fc-event.meetly-meeting { --fc-event-bg-color: #0d9488; --fc-event-border-color: #0d9488; }

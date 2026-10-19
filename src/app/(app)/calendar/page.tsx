@@ -1,3 +1,14 @@
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Your Calendar</h1>;
+import { PageHeader } from "@/components/page-header";
+import CalendarView from "@/components/calendar-view";
+
+export default function CalendarPage() {
+  return (
+    <>
+      <PageHeader
+        title="Calendar"
+        subtitle="Your personal schedule. Only free/busy time slots are ever shared with your team."
+      />
+      <CalendarView />
+    </>
+  );
 }

@@ -1,3 +1,5 @@
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Home</h1>;
+import HomeView from "@/components/home-view";
+
+export default function HomePage() {
+  return <HomeView />;
 }

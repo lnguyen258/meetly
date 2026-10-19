@@ -1,3 +1,5 @@
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Chat</h1>;
+import ChatList from "@/components/chat-list";
+
+export default function ChatPage() {
+  return <ChatList />;
 }

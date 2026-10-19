@@ -29,7 +29,9 @@ export async function updateSession(request: NextRequest) {
 
   if (!data?.claims && !isPublic) {
     const url = request.nextUrl.clone();
+    const next = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = "/login";
+    url.search = next !== "/" ? `?next=${encodeURIComponent(next)}` : "";
     return NextResponse.redirect(url);
   }
   return response;
